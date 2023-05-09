@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken'
 import * as userRepository from '../data/auth.js'
+import { config } from '../config.js'
+
 const AUTH_ERROR = { message: `인증 에러!` };
 export const isAuth = async (req, res, next) => {
     // 포스트맨에 겟방식으로 ? 로 이런 토큰을 가지고 있다고 계속 전송해서 만료되지 않으면 로그가 바디에 지저분하게 남는다, 그래서 헤더에 담아서 보냄
@@ -12,7 +14,7 @@ export const isAuth = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     jwt.verify(
         token,
-        'E5!87O2bPUp5Hj9P$2S@KsPk1IVh#Lbj',
+        config.jwt.secretKey,
         async (error, decode) => {
             if (error) {
                 res.status(401).json(AUTH_ERROR)

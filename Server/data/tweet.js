@@ -6,7 +6,7 @@ let tweets = [
         id: '1',
         text: '첫 트윗입니다!!',
         createdAT: Date.now().toString(),
-        userId: '1'
+        userId: '2'
     },
     {
         id: '2',
