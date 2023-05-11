@@ -1,11 +1,13 @@
-import mysql from 'mysql2'
-import {config} from '../config.js'
+import mysql from "mysql2";
+import { config } from "../config.js"
+import SQ from 'sequelize';
 
-const pool = mysql.createPool({
-    host: config.db.db_host,
-    user: config.db.db_user,
-    database: config.db.db_database,
-    password: config.db.db_password
-})
 
-export const db = pool.promise();
+const { host, user, database, password } = config.db;
+
+export const sequelize = new SQ.Sequelize(database, user, password, {
+    host,
+    dialect: 'mysql',
+    logging: false,
+    timezone: '+09:00'
+});
