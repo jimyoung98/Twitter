@@ -127,6 +127,6 @@ export async function deleteTweet(id) {
     return Tweet.findByPk(id).then((tweet) => {
         console.log(tweet);
         console.log('------------- 딜리트 -------------');
-        tweet.destroy;
+        tweet.destroy();
     })
 }
