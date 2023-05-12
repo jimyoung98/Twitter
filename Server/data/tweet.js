@@ -1,85 +1,71 @@
-import express from 'express';
-import * as userRepository from './auth.js';
-// import { db } from '../db/database.js'
-
-let tweets = [
-    {
-        id: '1',
-        text: '첫 트윗입니다!!',
-        createdAT: Date.now().toString(),
-        userId: '1'
-    },
-    {
-        id: '2',
-        text: '안녕하세요요!!',
-        createdAT: Date.now().toString(),
-        userId: '1'
-    },
-    {
-        id: '3',
-        text: '싱싱한 메론!!',
-        createdAT: Date.now().toString(),
-        userId: '1'
-    }
-];
-
-
-const SELECT_JOIN = 'SELECT users.id, users.username, users.password, users.name, users.email, users.url, tweets.text, tweets.createAT, tweets.userid FROM users left outer JOIN tweets on users.id = tweets.userid';
-
-const ORDER_DESC = 'ORDER By tweets.createAT desc';
-
-// select 해올때 테이블이 다르기때문에 join해서 가져와야함
-
+import MongoDb from 'mongodb';
+import { getTweets } from '../db/database.js';
+import * as UserRepository from './auth.js';
+const ObjectID = MongoDb.ObjectId;
 export async function getAll() {
-    // return Promise.all(
-    //     tweets.map(async (tweet) => {
-    //         const { username, name, url } = await userRepository.findById(tweet.userId);
-    //         return { ...tweet, username, name, url };
-    //     })
-    // )
-    return db.execute(`${SELECT_JOIN} ${ORDER_DESC}`).then((result) => result[0]);
+    // const tweets = await getTweets().find().toArray();
+    // return tweets.map(mapOptionalTweet);
+    return getTweets()
+        .find()
+        .sort({ createdAt: -1 })
+        .toArray()
+        .then(mapTweets);
+};
+export async function getAllByUsername(username) {
+    // const tweets = await getTweets().find({ username }).toArray();
+    // return tweets.map(mapOptionalTweet);
+    return getTweets().find({ username }).sort({ createdAt: -1 }).toArray()
+        .then(mapTweets);
 }
-
-export async function getAllbyUsername(username) {
-    // return getAll()
-    //     .then((tweets => tweets.filter((tweet) => tweet.username === username)));
-    return db.execute(`${SELECT_JOIN} where users.username = ? ${ORDER_DESC} ; `, [username]).then((result) => result[0]);
+export async function getById(id) {
+    // const tweet = await getTweets(id).findOne({ _id: ObjectID.id });
+    // return mapOptionalTweet(tweet);
+    return getTweets()
+        .find({ _id: new ObjectID(id) })
+        .next()
+        .then(mapOptionalTweet);
 }
-
-
-export async function getTweetsById(id) {
-    return db.execute(`${SELECT_JOIN} where tweets.id = ?; `, [id]).then((result) => result[0][0]).then((error) => {
-        return console.log(error);
-    });
-    // return db.execute('SELECT users.id, users.username, users.password, users.name, users.email, users.url, tweets.text, tweets.createAT, tweets.userid FROM users left outer JOIN tweets on users.id = tweets.userid where tweets.id = ?', [id]).then((result) => result[0][0]);
-}
-
-
-
+// export async function getById(id) {
+//     return Tweet.findByPk(id)
+//         .then((data) => data ? data.dataValues : 'no data')
+// }
 export async function create(text, userId) {
-    // const tweet = {
-    //     id: Date.now().toString(),
-    //     text,
-    //     createdAT: new Date(),
-    //     userId
-    // };
-    // tweets = [tweet, ...tweets];
-    // return getTweetsById(tweet.id)
-    return db.execute('insert into tweets (text, createAT, userId) values (?, ?, ?)', [text, new Date(), userId])
-        .then((result) => console.log(result))
+    return UserRepository.findById(userId)
+        .then((user) => getTweets().insertOne({
+            text,
+            createAt: new Date(),
+            userId,
+            name: user.name,
+            username: user.username,
+            url: user.url
+        }))
+        .then((res) => console.log(res))
+        .then(mapOptionalTweet);
 }
-
 export async function update(id, text) {
-    // const tweet = tweets.find((tweet) => tweet.id === id);
-    // if (tweet) {
-    //     tweet.text = text;
-    // }
-    // return tweet
-    return db.execute('update tweets SET text=? where tweet.id=?', [text, id]
-        .then(() => getTweetsById(id)));
+    // return Tweet.findByPk(id, INCLUDE_USER)
+    //     .then((tweet) => {
+    //         tweet.text = text;
+    //         return tweet.save();
+    //     });
+    return getTweets().findOneAndUpdate(
+        { _id: new ObjectID(id) },
+        { $set: { text } },
+        { returnOriginal: false }
+    )
+        .then((result) => result.value)
+        .then(mapOptionalTweet);
 }
-
 export async function remove(id) {
-    // tweets = tweets.filter((tweet) => tweet.id !== id);
-    return db.execute('delete from tweets where userid=?', [id]);
+    // return Tweet.findByPk(id)
+    //     .then((tweet) => {
+    //         tweet.destroy();
+    //     })
+    return getTweets().deleteOne({ _id: new ObjectID(id) });
+}
+function mapOptionalTweet(tweet) {
+    return tweet ? { ...tweet, id: tweet._id.toString() } : tweet;
+}
+function mapTweets(tweets) {
+    return tweets.map(mapOptionalTweet)
 }
