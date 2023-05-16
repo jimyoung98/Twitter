@@ -20,7 +20,7 @@ export const config = {
     },
 
     host: {
-        port:parseInt(required('SERVER_PORT', 8080))
+        port:parseInt(required('PORT', 8080))
     },
 
     db: {
