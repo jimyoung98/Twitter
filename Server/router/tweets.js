@@ -20,7 +20,7 @@ router.get('/', isAuth, tweetController.getTweets);
 
 // GET
 // /tweets/:id
-router.get('/:id', isAuth, tweetController.getTweet);
+router.get('/:id', isAuth, tweetController.getTweets);
 
 // text가 4자 이하인 경우 에러처리
 //POST

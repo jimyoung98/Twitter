@@ -1,6 +1,5 @@
 import * as tweetRepository from '../data/tweet.js';
 import { getSocketIO } from '../connection/socket.js';
-
 export async function getTweets(req, res) {
     const username = req.query.username;
     const data = await (username
@@ -8,7 +7,6 @@ export async function getTweets(req, res) {
         : tweetRepository.getAll());
     res.status(200).json(data);
 };
-
 export async function getTweet(req, res, next) {
     const id = req.params.id;
     const tweet = await tweetRepository.getById(id);
@@ -18,14 +16,12 @@ export async function getTweet(req, res, next) {
         res.status(404).json({ message: `Tweet id(${id}) not found` });
     }
 };
-
 export async function CreateTweet(req, res, next) {
     const { text } = req.body;
     const tweet = await tweetRepository.create(text, req.userId);
     res.status(201).json(tweet);
     getSocketIO().emit('tweet', tweet);
 };
-
 export async function UpdateTweet(req, res, next) {
     const id = req.params.id;
     const text = req.body.text;
@@ -40,7 +36,6 @@ export async function UpdateTweet(req, res, next) {
     const updated = await tweetRepository.update(id, text);
     res.status(200).json(updated);
 }
-
 export async function deleteTweet(req, res, next) {
     const id = req.params.id;
     const tweet = await tweetRepository.getById(id);
